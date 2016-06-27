@@ -13,24 +13,32 @@ program_name = "get-screenboard"
 if __name__ == '__main__':
     logging.basicConfig(level=logging.ERROR)
     parser = argparse.ArgumentParser(prog=program_name)
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
         "-t", "--title", type=str,
         help="title of screenboard to get",
-        required=True,
+    )
+    group.add_argument(
+        "-i", "--id", type=int,
+        help="id of screenboard to get",
     )
     args = parser.parse_args()
 
     initialize(**options)
 
-    screenboards = api.Screenboard.get_all()
-    for screenboard in screenboards['screenboards']:
-        logging.debug(json.dumps(screenboard))
-        if screenboard['title'] == args.title:
-            screenboard_id = screenboard['id']
-            logging.debug("Found '%s' with id '%s'", args.title, screenboard_id)
-            break
+    if args.id is None:
+        screenboards = api.Screenboard.get_all()
+        for screenboard in screenboards['screenboards']:
+            logging.debug(json.dumps(screenboard))
+            if screenboard['title'] == args.title:
+                screenboard_id = screenboard['id']
+                logging.debug("Found '%s' with id '%s'", args.title, screenboard_id)
+                break
+        else:
+            logging.error("could not find screenboard '%s'", args.title)
+            sys.exit(1)
     else:
-        logging.error("could not find screenboard '%s'", args.title)
-        sys.exit(1)
+        screenboard_id = args.id
+
     board = api.Screenboard.get(screenboard_id)
     print json.dumps(board, indent=4, separators=(',', ': '))

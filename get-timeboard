@@ -13,24 +13,32 @@ program_name = "get-timeboard"
 if __name__ == '__main__':
     logging.basicConfig(level=logging.ERROR)
     parser = argparse.ArgumentParser(prog=program_name)
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
         "-t", "--title", type=str,
         help="title of timeboard to get",
-        required=True,
+    )
+    group.add_argument(
+        "-i", "--id", type=int,
+        help="id of screenboard to get",
     )
     args = parser.parse_args()
 
     initialize(**options)
 
-    timeboards = api.Timeboard.get_all()
-    for timeboard in timeboards['dashes']:
-        logging.debug(json.dumps(timeboard))
-        if timeboard['title'] == args.title:
-            timeboard_id = timeboard['id']
-            logging.debug("Found '%s' with id '%s'", args.title, timeboard_id)
-            break
+    if args.id is None:
+        timeboards = api.Timeboard.get_all()
+        for timeboard in timeboards['dashes']:
+            logging.debug(json.dumps(timeboard))
+            if timeboard['title'] == args.title:
+                timeboard_id = timeboard['id']
+                logging.debug("Found '%s' with id '%s'", args.title, timeboard_id)
+                break
+        else:
+            logging.error("could not find timeboard '%s'", args.title)
+            sys.exit(1)
     else:
-        logging.error("could not find timeboard '%s'", args.title)
-        sys.exit(1)
+        timeboard_id = args.id
+
     board = api.Timeboard.get(timeboard_id)
     print json.dumps(board, indent=4, separators=(',', ': '))
