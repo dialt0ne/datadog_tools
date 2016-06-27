@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+import argparse
+import json
+import logging
+import sys
+from datadog import initialize, api
+
+from datadog_creds import options
+
+program_name = "get-screenboard"
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.ERROR)
+    parser = argparse.ArgumentParser(prog=program_name)
+    parser.add_argument(
+        "-t", "--title", type=str,
+        help="title of screenboard to get",
+        required=True,
+    )
+    args = parser.parse_args()
+
+    initialize(**options)
+
+    screenboards = api.Screenboard.get_all()
+    for screenboard in screenboards['screenboards']:
+        logging.debug(json.dumps(screenboard))
+        if screenboard['title'] == args.title:
+            screenboard_id = screenboard['id']
+            logging.debug("Found '%s' with id '%s'", args.title, screenboard_id)
+            break
+    else:
+        logging.error("could not find screenboard '%s'", args.title)
+        sys.exit(1)
+    board = api.Screenboard.get(screenboard_id)
+    print json.dumps(board, indent=4, separators=(',', ': '))
