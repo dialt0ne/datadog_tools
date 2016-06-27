@@ -29,5 +29,5 @@ if __name__ == '__main__':
         title=board['dash']['title'],
         description=board['dash']['description'],
         graphs=board['dash']['graphs'],
-        template_variables=board['dash']['template_variables'],
+        template_variables=board['dash']['template_variables'] if 'template_variables' in board['dash'] else [],
     )
