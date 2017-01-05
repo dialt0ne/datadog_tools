@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+import argparse
+import json
+import logging
+from datadog import initialize, api
+
+from datadog_creds import options
+
+program_name = "put-monitor"
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.ERROR)
+    parser = argparse.ArgumentParser(prog=program_name)
+    parser.add_argument(
+        "-f", "--filename", type=str,
+        help="filename of previously exported monitor",
+        required=True,
+    )
+    args = parser.parse_args()
+
+    initialize(**options)
+
+    with open(args.filename, 'r') as f:
+        monitor = json.load(f)
+
+    result = api.Monitor.update(**monitor)

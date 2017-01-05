@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+import argparse
+import json
+import logging
+import sys
+from datadog import initialize, api
+
+from datadog_creds import options
+
+program_name = "get-montior"
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.ERROR)
+    parser = argparse.ArgumentParser(prog=program_name)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "-n", "--name", type=str,
+        help="name of montior to get",
+    )
+    group.add_argument(
+        "-i", "--id", type=int,
+        help="id of montior to get",
+    )
+    args = parser.parse_args()
+
+    initialize(**options)
+
+    if args.id is None:
+        monitors = api.Monitor.get_all()
+        for monitor in monitors:
+            logging.debug(json.dumps(monitor))
+            if monitor['name'] == args.name:
+                monitor_id = monitor['id']
+                logging.debug("Found '%s' with id '%s'", args.name, monitor_id)
+                break
+        else:
+            logging.error("could not find monitor '%s'", args.monitor)
+            sys.exit(1)
+    else:
+        monitor_id = args.id
+
+    board = api.Monitor.get(monitor_id)
+    print json.dumps(board, indent=4, separators=(',', ': '))
