@@ -1,2 +1,2 @@
-datadog_creds.py
+datadog_creds.py*
 *.pyc
